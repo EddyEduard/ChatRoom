@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "library": "microsoft-signalr@7.0.3",
+      "destination": "wwwroot/lib/microsoft-signalr/",
+      "files": [
+        "signalr.min.js"
+      ]
+    },
+    {
+      "provider": "unpkg",
+      "library": "font-awesome@4.7.0",
+      "destination": "wwwroot/lib/font-awesome/",
+      "files": [
+        "css/font-awesome.min.css",
+        "fonts/fontawesome-webfont.eot",
+        "fonts/fontawesome-webfont.svg",
+        "fonts/fontawesome-webfont.ttf",
+        "fonts/fontawesome-webfont.woff",
+        "fonts/fontawesome-webfont.woff2",
+        "fonts/FontAwesome.otf",
+        "css/font-awesome.css",
+        "css/font-awesome.css.map"
+      ]
+    }
+  ]
+}
