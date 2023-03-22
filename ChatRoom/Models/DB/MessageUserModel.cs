@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace ChatRoom.Models.DB
 {
-    public enum MessageStatus {
-        SENT,
-        RECEIVED,
-        SEEN
+    public enum MessageStatus: int {
+        SENT = 0,
+        SEEN = 1
     }
 
     [Table("MessageUsers")]
@@ -18,11 +18,13 @@ namespace ChatRoom.Models.DB
 
         [ForeignKey("FK_MessageUsers_IdUserFrom")]
         [Column("IdUserFrom")]
+        [JsonPropertyName("id_user_from")]
         public int IdUserFrom { get; set; }
 
         [ForeignKey("FK_MessageUsers_IdUserTo")]
         [Column("IdUserTo")]
-        public int IdUserTo { get; set; }
+		[JsonPropertyName("id_user_to")]
+		public int IdUserTo { get; set; }
 
         [Column("Content")]
         [DataType(DataType.Text)]
@@ -33,6 +35,7 @@ namespace ChatRoom.Models.DB
 
         [Column("DateTime")]
         [DataType(DataType.DateTime)]
-        public DateTime DateTime { get; set; }
+		[JsonPropertyName("date_time")]
+		public DateTime DateTime { get; set; }
     }
 }

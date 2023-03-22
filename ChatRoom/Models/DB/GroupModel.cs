@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace ChatRoom.Models.DB
 {
@@ -14,7 +15,15 @@ namespace ChatRoom.Models.DB
         public string? Name { get; set; }
 
         [ForeignKey("FK_Groups_AdminUser")]
-        [Column("IsAdminUser")]
+        [Column("IdAdminUser")]
         public int IdAdminUser { get; set; }
-    }
+
+		[NotMapped]
+		[JsonPropertyName("status")]
+		public string Status { get; set; } = "OFFLINE";
+
+		[NotMapped]
+		[JsonPropertyName("last_message")]
+		public MessageGroupModel? LastMessage { get; set; } = new MessageGroupModel();
+	}
 }

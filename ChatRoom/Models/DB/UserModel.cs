@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace ChatRoom.Models.DB
 {
@@ -19,6 +20,15 @@ namespace ChatRoom.Models.DB
 
         [Column("Password")]
         [DataType(DataType.Password)]
+        [JsonIgnore]
         public string? Password { get; set; }
-    }
+
+		[NotMapped]
+		[JsonPropertyName("status")]
+		public string Status { get; set; } = "OFFLINE";
+
+		[NotMapped]
+		[JsonPropertyName("last_message")]
+		public MessageUserModel? LastMessage { get; set; } = new MessageUserModel();
+	}
 }

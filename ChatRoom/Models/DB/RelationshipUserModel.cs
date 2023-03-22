@@ -11,8 +11,8 @@ namespace ChatRoom.Models.DB
         [Column("IdUserFirst")]
         public int IdUserFirst { get; set; }
 
-        [ForeignKey("FK_RelationshipUsers_IsAdminUser")]
-        [Column("IsAdminUser")]
-        public int IsAdminUser { get; set; }
+        [ForeignKey("FK_RelationshipUsers_IdUserSecond")]
+        [Column("IdUserSecond")]
+        public int IdUserSecond { get; set; }
     }
 }
