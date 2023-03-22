@@ -53,7 +53,7 @@ namespace ChatRoom.Controllers.Api
                     new Claim("Id", user.Id.ToString()),
                     new Claim(ClaimTypes.UserData, JsonConvert.SerializeObject(user))
                 };
-
+                
                 HttpContext.User.AddIdentity(new ClaimsIdentity(claims));
                 var newToken = _tokenManager.GenerateToken(claims, Configuration.GetValue<string>("SecretKey")!);
 
