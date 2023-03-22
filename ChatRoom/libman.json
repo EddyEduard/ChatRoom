@@ -24,6 +24,13 @@
         "css/font-awesome.css",
         "css/font-awesome.css.map"
       ]
+    },
+    {
+      "library": "angular.js@1.8.3",
+      "destination": "wwwroot/lib/angular.js/",
+      "files": [
+        "angular.min.js"
+      ]
     }
   ]
 }
