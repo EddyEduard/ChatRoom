@@ -6,6 +6,7 @@ $(document).ready(function () {
     const signIn = $("#sign-in");
     const signUp = $("#sign-up");
     const loading = $("#loading");
+    const errorMessage = $("#error-message");
 
     // Set the remembered credentials.
 
@@ -64,8 +65,7 @@ $(document).ready(function () {
                     window.location.href = "/account/chat";
                 },
                 error: function (error) {
-                    console.log(error);
-
+                    errorMessage.text(error.responseJSON.message);
                     loading.hide();
                     signIn.show();
                 }
@@ -124,8 +124,7 @@ $(document).ready(function () {
                     window.location.href = "/auth/login";
                 },
                 error: function (error) {
-                    console.log(error);
-
+                    errorMessage.text(error.responseJSON.message);
                     loading.hide();
                     signUp.show();
                 }
