@@ -33,6 +33,11 @@ namespace ChatRoom.Services.Hubs
 		{
 			if (!_onlineUsers.ContainsKey(userId))
 				_onlineUsers.Add(userId, Context.ConnectionId);
+			else
+			{
+				_onlineUsers.Remove(userId);
+				_onlineUsers.Add(userId, Context.ConnectionId);
+			}
 
 			await Clients.All.SendAsync("OnlineUsers", _onlineUsers.Keys);
 		}
@@ -61,23 +66,39 @@ namespace ChatRoom.Services.Hubs
 			if (_onlineUsers.ContainsKey(toUserId))
 			{
                 var connectionId = _onlineUsers[toUserId];
-
+				
 				await Clients.Client(connectionId).SendAsync("ReceiveMessageFromUser", fromUserId, message, dateTime);
 			}
 		}
 
 		// Send message to a group.
-		public async Task SendMessageToGroup(int userId, int groupId, string message, string dateTime)
+		public async Task SendMessageToGroup(int userId, int groupId, string message, string dateTime, string name, string image)
 		{
 			if (_onlineGroups.ContainsKey(groupId))
 			{
 				var connectionIds = _onlineGroups[groupId];
+				var previewCoonectionId = "";
 
 				foreach (var connectionId in connectionIds)
 				{
-					Console.WriteLine(connectionId);
-					await Clients.Client(connectionId).SendAsync("ReceiveMessageFromGroup", userId, groupId, message, dateTime);
+					if (connectionId != previewCoonectionId)
+					{
+						await Clients.Client(connectionId).SendAsync("ReceiveMessageFromGroup", userId, groupId, message, dateTime, name, image);
+						
+						previewCoonectionId = connectionId;
+					}
 				}
+			}
+		}
+
+		// Seen messages from user.
+		public async Task SeenMessagesFromUser(int fromUserId, int toUserId)
+		{
+			if (_onlineUsers.ContainsKey(toUserId))
+			{
+				var connectionId = _onlineUsers[toUserId];
+
+				await Clients.Client(connectionId).SendAsync("ReceiveSeenMessagesFromUser", fromUserId);
 			}
 		}
 	}

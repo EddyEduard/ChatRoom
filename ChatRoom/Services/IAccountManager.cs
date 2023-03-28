@@ -6,7 +6,6 @@ namespace ChatRoom.Services
     {
         Task<UserModel?> LoginAsync(string email, string password);
         Task RegisterAsync(UserModel userModel, string password);
-        Task UpdateUserAsync(UserModel userModel);
         Task UpdatePasswordAsync(UserModel userModel, string newPassword);
         int GetUserId(HttpContext httpContext);
         Task<bool> CheckUserEmailAsync(string email);

@@ -69,16 +69,6 @@ namespace ChatRoom.Services
         }
 
         /// <summary>
-        /// Update user account.
-        /// </summary>
-        /// <param name="userModel"></param>
-        public async Task UpdateUserAsync(UserModel userModel)
-        {
-            _context.Entry(userModel).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-        }
-
-        /// <summary>
         /// Update password user.
         /// </summary>
         /// <param name="userModel"></param>
