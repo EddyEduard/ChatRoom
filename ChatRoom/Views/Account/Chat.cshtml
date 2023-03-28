@@ -7,23 +7,63 @@
 <link rel="stylesheet" href="~/css/chat.css" asp-append-version="true" />
 
 <div class="frame">
-	<div class="sidepanel">
+	<div class="sidepanel sidepanel-left">
 		<div class="profile" ng-controller="ProfileController">
-			<div class="wrap">
-				<img id="profile-img" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="online" alt="" />
-				<p>{{profile.name}}</p>
+			<div class="skeleton" ng-if="!isLoadedProfile">
+				<div class="skeleton-left flex1">
+					<div class="square circle"></div>
+				</div>
+				<div class="skeleton-left flex2">
+					<div class="line h17"></div>
+				</div>
+			</div>
+			<div class="wrap" ng-if="isLoadedProfile">
+				<img ng-src="{{profile.user.image}}" class="online img-fluid" />
+				<p>{{profile.user.name}}</p>
 			</div>
 		</div>
-		<div class="search">
+		<div class="search search-users" ng-show="!isOpenGroupList">
 			<label for=""><i class="fa fa-search" aria-hidden="true"></i></label>
 			<input type="text" placeholder="Search contacts ..." ng-model="searchContacts" />
 		</div>
+		<div class="search search-groups" ng-show="isOpenGroupList">
+			<label for=""><i class="fa fa-search" aria-hidden="true"></i></label>
+			<input type="text" placeholder="Search groups ..." ng-model="searchGroups" />
+		</div>
+		<div class="create" ng-show="isOpenGroupList">
+			<label for=""><i class="fa fa-group" aria-hidden="true"></i></label>
+			<input type="text" placeholder="Name group ..." ng-model="nameNewGroup" />
+			<button ng-click="createGroup(nameNewGroup);nameNewGroup=''"><i class="fa fa-plus fa-fw"></i></button>
+		</div>
 		<div class="contacts" ng-controller="ContactController">
-			<ul ng-if="isOpenContactList">
+			<ul ng-if="!isLoadedContacts">
+				<li class="contact" data-ng-repeat="i in [1,2,3,4,5]">
+					<div class="wrap skeleton">
+						<div class="skeleton-left flex1">
+							<div class="square circle"></div>
+						</div>
+						<div class="skeleton-left flex2">
+							<div class="line h17 w50"></div>
+							<div class="line w75"></div>
+						</div>
+					</div>
+				</li>
+			</ul>
+			<ul class="items" ng-if="isOpenGroupList">
+				<li class="contact" ng-repeat="group in profile.groups | filter:searchGroups" ng-click="manageProfileGroup(group.id)">
+					<div class="wrap">
+						<img ng-src="{{group.image}}" />
+						<div class="meta">
+							<p class="name">{{group.name}}</p>
+							<p class="info">You have create this group!</p>
+						</div>
+					</div>
+				</li>
+			</ul>
+			<ul class="items" ng-if="isOpenContactList && !isOpenGroupList">
 				<li class="contact" ng-repeat="user in userList | filter:searchContacts" ng-click="addContact(user.id)">
 					<div class="wrap">
-						<span class="contact-status"></span>
-						<img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" />
+						<img ng-src="{{user.image}}" />
 						<div class="meta">
 							<p class="name">{{user.name}}</p>
 							<p class="email">{{user.email}}</p>
@@ -31,53 +71,223 @@
 					</div>
 				</li>
 			</ul>
-			<ul ng-if="!isOpenContactList">
+			<ul class="items" ng-if="isLoadedContacts && !isOpenContactList && !isOpenGroupList">
 				<li class="contact" ng-repeat="user in users | filter:searchContacts" ng-click="openConversation(user.id, 'user')">
 					<div class="wrap">
 						<span class="contact-status" ng-class="{'online': user.status == 'ONLINE', 'offline': user.status == 'OFFLINE'}"></span>
-						<img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" />
+						<img ng-src="{{user.image}}" />
 						<div class="meta">
-							<p class="name" ng-class="{'font-weight-bold': user.last_message.id_user_to == profile.id && user.last_message.status == 0}">{{user.name}}</p>
-							<p class="preview" ng-class="{'font-weight-bold': user.last_message.id_user_to == profile.id && user.last_message.status == 0}">{{user.last_message.content == '' ? "No message yet!" : user.last_message.content}}</p>
+							<p class="name" ng-class="{'font-weight-bold': user.last_message.id_user_to == profile.user.id && user.last_message.status == 0}">{{user.name}}</p>
+							<p class="preview" ng-class="{'font-weight-bold': user.last_message.id_user_to == profile.user.id && user.last_message.status == 0}">{{user.last_message.content == null ? "No message yet!" : user.last_message.content}}</p>
 						</div>
+					</div>
+					<div class="new-message" ng-if="user.last_message.id_user_to == profile.user.id && user.last_message.status == 0">
+						<span>
+							<i class="fa fa-envelope-o" aria-hidden="true"></i>
+						</span>
 					</div>
 				</li>
 				<li class="contact" ng-repeat="group in groups | filter:searchContacts" ng-click="openConversation(group.id, 'group')">
 					<div class="wrap">
 						<span class="contact-status" ng-class="{'online': group.status == 'ONLINE', 'offline': group.status == 'OFFLINE'}"></span>
-						<img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" />
+						<img ng-src="{{group.image}}" />
 						<div class="meta">
-							<p class="name" ng-class="{'font-weight-bold': group.last_message.seen_members.indexOf(profile.id) == -1 && group.last_message.status == 0}">{{group.name}}</p>
-							<p class="preview" ng-class="{'font-weight-bold': group.last_message.seen_members.indexOf(profile.id) == -1 &&  group.last_message.status == 0}">{{group.last_message.content == '' ? "No message yet!" : group.last_message.content}}</p>
+							<p class="name" ng-class="{'font-weight-bold': group.last_message.seen_members.indexOf(profile.user.id) == -1 && group.last_message.status == 0}">{{group.name}}</p>
+							<p class="preview" ng-class="{'font-weight-bold': group.last_message.seen_members.indexOf(profile.user.id) == -1 &&  group.last_message.status == 0}">{{group.last_message.content == null ? "No message yet!" : group.last_message.content}}</p>
 						</div>
+					</div>
+					<div class="new-message" ng-if="group.last_message.seen_members.indexOf(profile.user.id) == -1 && group.last_message.status == 0">
+						<span>
+							<i class="fa fa-envelope-o" aria-hidden="true"></i>
+						</span>
 					</div>
 				</li>
 			</ul>
 		</div>
 		<div class="bottom-bar" ng-controller="ContactController">
-			<button ng-if="!isOpenContactList" ng-click="openContactList('')"><i class="fa fa-user-plus fa-fw" aria-hidden="true"></i> <span>Add contact</span></button>
-			<button ng-if="isOpenContactList" ng-click="openContactList('my')"><i class="fa fa-users fa-fw" aria-hidden="true"></i> <span>My contacts</span></button>
-			<button><i class="fa fa-cog fa-fw" aria-hidden="true"></i> <span>Settings</span></button>
+			<button ng-if="!isOpenContactList && !isOpenGroupList" ng-click="openContactList('')"><i class="fa fa-user-plus fa-fw"></i> Add contact</button>
+			<button ng-if="isOpenContactList || isOpenGroupList" ng-click="openContactList('my')"><i class="fa fa-users fa-fw"></i> My contacts</button>
+			<div class="dropdown-menu dropdown-menu-right" id="settings-contact">
+				<button class="dropdown-item" ng-click="openSettings('PROFILE')"><span><i class="fa fa-user fa-fw"></i> My Profile</span></button>
+				<button class="dropdown-item" ng-click="openSettings('GROUPS')"><span><i class="fa fa-group fa-fw"></i> My Groups</span></button>
+			</div>
+			<button class="dropdown-settings" id="dropdown-settings-contact"><i class="fa fa-cog fa-fw"></i> Settings</button>
 		</div>
 	</div>
 	<div class="content" ng-controller="ConversationController">
 		<div class="contact-profile" ng-if="isOpenedConversation">
-			<img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" />
+			<img class="online" ng-src="{{typeConversation == 'user' ? userConversation.image : groupConversation.image}}" />
 			<p>{{typeConversation == 'user' ? userConversation.name : groupConversation.name}}</p>
 		</div>
 		<div class="messages">
-			<ul>
+			<ul ng-if="isOpenedConversation && !isLoadedMessages">
+				<li data-ng-repeat="i in [1,2,3,4]" ng-class="{'sent': i % 2 == 0, 'replies': i % 2 != 0}">
+					<div class="skeleton" ng-if="i % 2 == 0">
+						<div class="skeleton-left flex1">
+							<div class="square circle"></div>
+						</div>
+						<div class="skeleton-left flex2">
+							<div class="line h100 w50"></div>
+						</div>
+					</div>
+					<div class="skeleton" ng-if="i % 2 != 0">
+						<div class="skeleton-right flex2">
+							<div class="line h100 w50"></div>
+						</div>
+						<div class="skeleton-right flex1">
+							<div class="square circle"></div>
+						</div>
+					</div>
+				</li>
+			</ul>
+			<ul ng-if="isOpenedConversation && isLoadedMessages" ng-init="isUnreadMessagesShow == false">
 				<li ng-repeat="message in messages" ng-class="{'replies': message.type == 'INCOME', 'sent': message.type == 'OUTCOME'}">
-					<img ng-src="{{message.imgLink}}" />
-					<p>{{message.content}}</p>
+					<div id="messages-unread" class="messages-unread" ng-if="message.status == 0 && countUnreadMessages > 0 && ($index > 0 && messages[$index - 1].status == 1)">
+						<span>{{countUnreadMessages}} UNREAD MESSAGES</span>
+					</div>
+					<img ng-src="{{message.user.image}}" />
+					<div class="message">
+						<div class="message-top">
+							<span class="message-username">~ {{message.user.name}}</span>
+						</div>
+						<br />
+						<div class="message-content">
+							<p>{{message.content}}</p>
+						</div>
+						<div class="message-bottom">
+							<span class="message-status" ng-if="message.type == 'OUTCOME'"><i class="fa" ng-class="{'fa-eye-slash': message.status == 0, 'fa-eye': message.status == 1}"></i></span>
+							<span class="message-datetime">{{message.dateTime.split('T')[1].substring(0, 5)}}</span>
+						</div>
+					</div>
 				</li>
 			</ul>
 		</div>
 		<div class="message-input" ng-if="isOpenedConversation">
 			<div class="wrap">
-				<textarea placeholder="Write your message..." ng-model="message"></textarea>
-				<i class="fa fa-paperclip attachment" aria-hidden="true"></i>
+				<textarea placeholder="Write your message ..." ng-model="message"></textarea>
 				<button type="button" class="submit" ng-click="sendMessage(message);message=''"><i class="fa fa-paper-plane"></i></button>
+			</div>
+		</div>
+	</div>
+	<div class="sidepanel sidepanel-right" id="manage-profile-user-or-group">
+		<div class="close-sidepanel" ng-controller="ProfileController">
+			<button ng-click="closeManageProfileUserOrGroup()"><i class="fa fa-times"></i></button>
+		</div>
+		<div class="profile" ng-controller="ProfileController">
+			<div class="skeleton" ng-if="!isLoadedProfile">
+				<div class="skeleton-left flex1">
+					<div class="square circle"></div>
+				</div>
+				<div class="skeleton-left flex2">
+					<div class="line h17"></div>
+				</div>
+			</div>
+			<div ng-if="isLoadedProfile">
+				<div ng-if="isManageProfileUser">
+					<div class="wrap">
+						<img ng-src="{{profile.user.image}}" class="online" ng-hide="isEditingProfileUser" />
+						<input type="file" id="profile-image" accept="image/png, image/jpg, image/jpeg" ng-show="isEditingProfileUser" />
+					</div>
+					<div class="text-center">
+						<p ng-hide="isEditingProfileUser">{{profile.user.name}}</p>
+						<input type="text" id="profile-name" placeholder="Enter your name ... " value="{{profile.user.name}}" ng-show="isEditingProfileUser" />
+					</div>
+					<br />
+					<div class="text-center">
+						<p ng-hide="isEditingProfileUser">{{profile.user.email}}</p>
+						<input type="email" id="profile-email" placeholder="Enter your email ... " value="{{profile.user.email}}" ng-show="isEditingProfileUser" />
+					</div>
+					<div class="text-center" ng-show="isEditingProfileUser">
+						<div ng-if="!isSaveingProfile">
+							<button ng-click="saveEditProfileUserOrGroup(profileImage, profileName)"><i class="fa fa-save fa-fw"></i></button>
+							<button ng-click="cancelEditProfileUserOrGroup()"><i class="fa fa-ban fa-fw"></i></button>
+						</div>
+						<div class="loading mt-3" ng-if="isSaveingProfile">
+							<div class="d-flex justify-content-center">
+								<div class="spinner-border" role="status"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div ng-if="isManageProfileGroup">
+					<div class="wrap">
+						<img ng-src="{{manageGroup.image}}" class="online" ng-hide="isEditingProfileGroup" />
+						<input type="file" id="profile-image" accept="image/png, image/jpg, image/jpeg" ng-show="isEditingProfileGroup" />
+					</div>
+					<div class="text-center">
+						<p ng-hide="isEditingProfileGroup">{{manageGroup.name}}</p>
+						<input type="text" id="profile-name" placeholder="Enter group name ... " value="{{manageGroup.name}}" ng-show="isEditingProfileGroup" />
+					</div>
+					<div class="text-center" ng-show="isEditingProfileGroup">
+						<div ng-if="!isSaveingProfile">
+							<button ng-click="saveEditProfileUserOrGroup(profileImage, profileName)"><i class="fa fa-save fa-fw"></i></button>
+							<button ng-click="cancelEditProfileUserOrGroup()"><i class="fa fa-ban fa-fw"></i></button>
+						</div>
+						<div class="loading mt-3" ng-if="isSaveingProfile">
+							<div class="d-flex justify-content-center">
+								<div class="spinner-border" role="status"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="search" ng-if="isManageProfileGroup">
+			<label for=""><i class="fa fa-search" aria-hidden="true"></i></label>
+			<input type="text" placeholder="Search members ..." ng-model="searchMembers" />
+		</div>
+		<div class="contacts" ng-controller="ContactController" ng-show="isManageProfileGroup">
+			<ul ng-if="!isLoadedMembers">
+				<li class="contact" data-ng-repeat="i in [1,2,3,4,5]">
+					<div class="wrap skeleton">
+						<div class="skeleton-left flex1">
+							<div class="square circle"></div>
+						</div>
+						<div class="skeleton-left flex2">
+							<div class="line h17 w50"></div>
+							<div class="line w75"></div>
+						</div>
+					</div>
+				</li>
+			</ul>
+			<ul ng-if="isOpenMemberList">
+				<li class="contact" ng-repeat="user in userListGroup | filter:searchMembers">
+					<div class="wrap">
+						<img ng-src="{{user.image}}" />
+						<div class="meta">
+							<p class="name">{{user.name}}</p>
+							<p class="email">{{user.email}}</p>
+						</div>
+						<button ng-click="addMember(user.id)"><i class="fa fa-plus fa-fw"></i></button>
+					</div>
+				</li>
+			</ul>
+			<ul ng-if="isLoadedMembers && !isOpenMemberList">
+				<li class="contact" ng-repeat="member in members | filter:searchMembers">
+					<div class="wrap">
+						<img ng-src="{{member.image}}" />
+						<div class="meta">
+							<p class="name">{{member.name}}</p>
+							<p class="preview">{{member.email}}</p>
+						</div>
+						<button ng-click="removeMember(member.id)" ng-if="member.id != profile.user.id"><i class="fa fa-trash fa-fw"></i></button>
+					</div>
+				</li>
+			</ul>
+		</div>
+		<div class="bottom-bar" ng-controller="ContactController">
+			<div ng-show="isManageProfileUser">
+				<button ng-click="editProfileUser()"><span><i class="fa fa-picture-o fa-fw"></i> Edit profile</span></button>
+				<button class="bg-danger" ng-click="deleteUser()"><span><i class="fa fa-trash fa-fw"></i> Delete account</span></button>
+			</div>
+			<div ng-show="isManageProfileGroup">
+				<button ng-if="!isOpenMemberList" ng-click="openMemberList('')"><i class="fa fa-user-plus fa-fw"></i> Add member</button>
+				<button ng-if="isOpenMemberList" ng-click="openMemberList('group')"><i class="fa fa-users fa-fw"></i> Members</button>
+				<div class="dropdown-menu dropdown-menu-right" id="settings-group">
+					<button class="dropdown-item" ng-click="editProfileGroup()"><span><i class="fa fa-picture-o fa-fw"></i> Edit profile</span></button>
+					<button class="dropdown-item bg-danger" ng-click="deleteGroup()"><span><i class="fa fa-trash fa-fw"></i> Delete group</span></button>
+				</div>
+				<button class="dropdown-settings" id="dropdown-settings-group"><i class="fa fa-cog fa-fw"></i> Settings</button>
 			</div>
 		</div>
 	</div>
