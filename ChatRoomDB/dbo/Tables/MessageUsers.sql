@@ -4,6 +4,6 @@
 	[IdUserFrom] INT NOT NULL CONSTRAINT FK_MessageUsers_UserFrom FOREIGN KEY REFERENCES Users(Id),
 	[IdUserTo] INT NOT NULL CONSTRAINT FK_MessageUsers_UserTo FOREIGN KEY REFERENCES Users(Id),
 	[Content] TEXT NOT NULL,
-	[Status] VARCHAR(10) NOT NULL,
+	[Status] INT NOT NULL,
 	[DateTime] DATETIME NOT NULL
 )
