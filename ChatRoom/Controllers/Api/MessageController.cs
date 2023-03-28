@@ -34,7 +34,7 @@ namespace ChatRoom.Controllers.Api
 				if (relationshipUsers == null)
 					return new ObjectResult(new { status = 403, message = "There is no relationship between these two users." }) { StatusCode = 403 };
 
-				IEnumerable<MessageUserModel> messages = _context.MessageUsers!.Where(x => (x.IdUserFrom == userId && x.IdUserTo == secondUserId) || (x.IdUserFrom == secondUserId && x.IdUserTo == userId)).ToList();
+				IEnumerable<MessageUserModel> messages = _context.MessageUsers!.Where(x => (x.IdUserFrom == userId && x.IdUserTo == secondUserId) || (x.IdUserFrom == secondUserId && x.IdUserTo == userId));
 
 				return Ok(messages);
 			}
@@ -63,8 +63,11 @@ namespace ChatRoom.Controllers.Api
 				if(relationshipGroup == null)
 					return new ObjectResult(new { status = 403, message = "You are not part of this group. You cannot view the messages." }) { StatusCode = 403 };
 
-				IEnumerable<MessageGroupModel> messages = _context.MessageGroups!.Where(x => x.IdGroup == groupId).ToList();
+				IEnumerable<MessageGroupModel> messages = _context.MessageGroups!.Where(x => x.IdGroup == groupId);
 
+				foreach (var message in messages)
+					message.User = await _context.Users!.FirstOrDefaultAsync(x => x.Id == message.IdUser);
+				
 				return Ok(messages);
 			}
 			catch (DbUpdateConcurrencyException ex)
@@ -233,18 +236,18 @@ namespace ChatRoom.Controllers.Api
 
 				IEnumerable<MessageGroupModel> sentMessages = _context.MessageGroups!.Where(x => x.Status == MessageStatus.SENT).ToList();
 				IEnumerable<RelationshipGroupModel> groupMembers = _context.RelationshipGroups!.Where(x => x.IdGroup == groupId).ToList();
-
+				
 				foreach (var messageGroup in sentMessages)
 				{
-					if (groupMembers.Count() == messageGroup.SeenMembers?.ToString()?.Split(",").Length)
-						messageGroup.Status = MessageStatus.SEEN;
-
 					if (messageGroup.SeenMembers?.IndexOf(userId.ToString()) == -1)
 					{
 						messageGroup.SeenMembers += "," + userId;
 						_context.Entry(messageGroup).State = EntityState.Modified;
 					}
-				}
+
+                    if (groupMembers.Count() == messageGroup.SeenMembers?.ToString()?.Split(",").Length)
+                        messageGroup.Status = MessageStatus.SEEN;
+                }
 
 				await _context.SaveChangesAsync();
 

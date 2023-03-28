@@ -1,10 +1,13 @@
 ﻿using ChatRoom.Data;
 using ChatRoom.Models.DB;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace ChatRoom.Controllers.Api
 {
@@ -13,19 +16,35 @@ namespace ChatRoom.Controllers.Api
 	[ApiController]
 	public class RelationshipController : ControllerBase
 	{
+		private IConfiguration Configuration;
+
 		private readonly ApplicationDbContext _context;
 
-		public RelationshipController(ApplicationDbContext context)
+		private readonly Cloudinary _cloudinary;
+
+		public RelationshipController(IConfiguration configuration, ApplicationDbContext context)
 		{
+			Configuration = configuration;
+
 			_context = context;
+
+			_cloudinary = new Cloudinary(new Account(Configuration.GetSection("Cloudinary").GetValue<string>("Cloud")!, Configuration.GetSection("Cloudinary").GetValue<string>("ApiKey")!, Configuration.GetSection("Cloudinary").GetValue<string>("ApiSecret")!));
 		}
 
 		// GET: api/relationship/users
 		// Provide all users.
 		[HttpGet("users")]
-		public ActionResult<IEnumerable<UserModel>> GetUsers()
+		public async Task<ActionResult<IEnumerable<UserModel>>> GetUsers()
 		{
 			IEnumerable<UserModel> users = _context.Users!.ToList();
+
+			foreach(var user in users)
+			{
+				var resource = await _cloudinary.GetResourceAsync("chatroom/users/" + user.Id.ToString());
+				
+				if (resource.SecureUrl != null)
+					user.Image = resource.SecureUrl;
+			}
 
 			return Ok(users);
 		}
@@ -35,7 +54,14 @@ namespace ChatRoom.Controllers.Api
 		[HttpGet("users/{id:int}")]
 		public async Task<ActionResult<UserModel>> GetUser([FromRoute] int id)
 		{
-			return Ok(await _context.Users!.FirstOrDefaultAsync(x => x.Id == id));
+			var user = await _context.Users!.FirstOrDefaultAsync(x => x.Id == id);
+
+			var resource = await _cloudinary.GetResourceAsync("chatroom/users/" + user!.Id.ToString());
+			
+			if (resource.SecureUrl != null)
+				user.Image = resource.SecureUrl;
+
+			return Ok(user);
 		}
 
 		// GET: api/relationship/contacts
@@ -62,6 +88,11 @@ namespace ChatRoom.Controllers.Api
 					user.LastMessage = lastMessage;
 					user.LastMessage.Content = lastMessage.Content!.Length < 20 ? lastMessage.Content! : lastMessage.Content!.Substring(0, 20) + " ...";
 				}
+
+				var resource = await _cloudinary.GetResourceAsync("chatroom/users/" + user!.Id.ToString());
+				
+				if (resource.SecureUrl != null)
+					user.Image = resource.SecureUrl;
 			}
 
             IEnumerable<RelationshipGroupModel> relationshipGroups = _context.RelationshipGroups!.ToList();
@@ -81,6 +112,11 @@ namespace ChatRoom.Controllers.Api
 					group.LastMessage = lastMessage;
 					group.LastMessage.Content = lastMessage.Content!.Length < 20 ? lastMessage.Content! : lastMessage.Content!.Substring(0, 20) + " ...";
 				}
+
+				var resource = await _cloudinary.GetResourceAsync("chatroom/groups/" + group!.Id.ToString());
+
+				if (resource.SecureUrl != null)
+					group.Image = resource.SecureUrl;
 			}
 
 			return new ObjectResult(new { users = contactUsers, groups = contactGroups }) { StatusCode = 200 };
@@ -127,19 +163,27 @@ namespace ChatRoom.Controllers.Api
 		// GET: api/relationship/group/{groupId}
 		// Provide all members from a group.
 		[HttpGet("group/{groupId:int}")]
-		public ActionResult<object> GetMemmbersFromGroup([FromRoute] int groupId)
+		public async Task<ActionResult<object>> GetMemmbersFromGroup([FromRoute] int groupId)
 		{
 			var userId = int.Parse(HttpContext.User.FindFirstValue("Id")!.ToString());
 
 			IEnumerable<RelationshipGroupModel> relationshipGroups = _context.RelationshipGroups!.ToList();
 
-			var membersGroup =
+			var members =
 				(from u in (from relationshipGroup in relationshipGroups
 							where relationshipGroup.IdGroup == groupId
 							select relationshipGroup)
 				 select _context.Users!.First(x => x.Id == u.IdUser));
 
-			return new ObjectResult(new { members = membersGroup }) { StatusCode = 200 };
+			foreach(var member in members)
+			{
+				var resource = await _cloudinary.GetResourceAsync("chatroom/users/" + member!.Id.ToString());
+
+				if (resource.SecureUrl != null)
+					member.Image = resource.SecureUrl;
+			}
+
+			return Ok(members);
 		}
 
 		// POST: api/relationship/group
@@ -165,9 +209,81 @@ namespace ChatRoom.Controllers.Api
 				if (group != null)
 					await _context.Database.ExecuteSqlRawAsync(string.Format("INSERT INTO RelationshipGroups VALUES ({0}, {1})", userId, group.Id));
 
-				return new ObjectResult(new { status = 200, message = "The group was created." }) { StatusCode = 200 };
+				return Ok(group);
 			}
 			catch (DbUpdateConcurrencyException ex)
+			{
+				return new ObjectResult(new { status = 500, message = ex.Message }) { StatusCode = 500 };
+			}
+		}
+
+		// PUT: api/relationship/group/{groupId}
+		// Update profile group.
+		[HttpPut("group/{groupId:int}")]
+		public async Task<IActionResult> UpdateProfileGroup([FromRoute] int groupId, [FromBody] JsonElement body)
+		{
+			try
+			{
+				var userId = int.Parse(HttpContext.User.FindFirstValue("Id")!.ToString());
+				string name = body.GetProperty("name").ToString();
+
+				var group = await _context.Groups!.FirstAsync(x => x.Id == groupId);
+
+				if (group == null)
+					return new ObjectResult(new { status = 403, message = "There is no group with this id." }) { StatusCode = 403 };
+
+				if (group.IdAdminUser != userId)
+					return new ObjectResult(new { status = 403, message = "This group is managed by another user. You are not the administrator." }) { StatusCode = 403 };
+
+				group.Name = name;
+
+				_context.Entry(group!).State = EntityState.Modified;
+				await _context.SaveChangesAsync();
+
+				return new ObjectResult(new { status = 200, message = "The profile group has been changed successfully." }) { StatusCode = 200 };
+			}
+			catch (Exception ex)
+			{
+				return new ObjectResult(new { status = 500, message = ex.Message }) { StatusCode = 500 };
+			}
+		}
+
+		// PUT: api/relationship/group/{groupId}/profile-image
+		// Update profile group image.
+		[HttpPut("group/{groupId:int}/profile-image")]
+		public async Task<IActionResult> UpdateProfileGroupImage([FromRoute] int groupId, IFormFile image)
+		{
+			try
+			{
+				var userId = int.Parse(HttpContext.User.FindFirstValue("Id")!.ToString());
+
+				var group = await _context.Groups!.FirstAsync(x => x.Id == groupId);
+
+				if (group == null)
+					return new ObjectResult(new { status = 403, message = "There is no group with this id." }) { StatusCode = 403 };
+
+				if (group.IdAdminUser != userId)
+					return new ObjectResult(new { status = 403, message = "This group is managed by another user. You are not the administrator." }) { StatusCode = 403 };
+
+				using (var stream = new MemoryStream())
+				{
+					await image.CopyToAsync(stream);
+					stream.Seek(0, SeekOrigin.Begin);
+
+					var uploadParams = new ImageUploadParams()
+					{
+						File = new FileDescription(image.FileName, stream),
+						PublicId = groupId.ToString(),
+						Folder = "chatroom/groups",
+						Overwrite = true
+					};
+
+					var resource = await _cloudinary.UploadAsync(uploadParams);
+
+					return Ok(resource.SecureUrl);
+				}
+			}
+			catch (Exception ex)
 			{
 				return new ObjectResult(new { status = 500, message = ex.Message }) { StatusCode = 500 };
 			}
