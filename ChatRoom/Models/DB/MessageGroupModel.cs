@@ -36,5 +36,9 @@ namespace ChatRoom.Models.DB
         [DataType(DataType.DateTime)]
         [JsonPropertyName("date_time")]
         public DateTime DateTime { get; set; }
-    }
+
+		[NotMapped]
+		[JsonPropertyName("user")]
+		public UserModel? User { get; set; }
+	}
 }

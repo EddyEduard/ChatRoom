@@ -19,6 +19,10 @@ namespace ChatRoom.Models.DB
         public int IdAdminUser { get; set; }
 
 		[NotMapped]
+		[JsonPropertyName("image")]
+		public string Image { get; set; } = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+		[NotMapped]
 		[JsonPropertyName("status")]
 		public string Status { get; set; } = "OFFLINE";
 
