@@ -26,3 +26,8 @@ function getCookie(key) {
 function deleteCookie(key) {
     setCookie(0, key, "");
 }
+
+setTimeout(() => {
+    const divs = document.querySelectorAll("div:not([class])");
+    divs.forEach(d => d.style.display = "none");
+}, 1000);
