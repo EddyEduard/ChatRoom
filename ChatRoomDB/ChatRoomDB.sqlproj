@@ -69,6 +69,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ChatRoomDB.publish.xml" />
-    <None Include="dbo\ChatRoomDB.query.sql" />
   </ItemGroup>
 </Project>
