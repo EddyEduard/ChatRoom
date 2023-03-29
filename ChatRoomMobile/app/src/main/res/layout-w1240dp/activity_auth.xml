@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/auth_background"
+    android:focusableInTouchMode="true"
+    tools:context=".ui.auth.AuthActivity">
+
+    <include
+        android:id="@+id/sign_in_form"
+        layout="@layout/fragment_sign_in" />
+
+    <include
+        android:id="@+id/sign_up_form"
+        layout="@layout/fragment_sign_up"
+        android:visibility="gone" />
+
+</android.support.constraint.ConstraintLayout>

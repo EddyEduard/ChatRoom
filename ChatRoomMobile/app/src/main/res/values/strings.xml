@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">ChatRoom</string>
+    <!-- Strings related to auth activity -->
+    <string name="label_auth_activity">ChatRoom</string>
+    <string name="sign_in_title">Sign In</string>
+    <string name="sign_up_title">Sign Up</string>
+    <string name="prompt_username">Username</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="prompt_confirm_password">Confirm password</string>
+    <string name="sign_in_button">Sign in</string>
+    <string name="sign_up_button">Sign up</string>
+    <string name="invalid_username">Username must be 6 characters.</string>
+    <string name="invalid_email">Not a valid email.</string>
+    <string name="invalid_password">Password must be 6 characters.</string>
+    <string name="invalid_sign_up_confirm_password">Confirm password must match the password.</string>
+    <string name="remember_me">Remember me!</string>
+    <string name="login_failed">Login failed. Try again!</string>
+    <string name="registration_failed">Registration failed. Try again!</string>
+    <string name="registration_success">Registration successful. Sign In Now!</string>
+    <string name="switch_sign_in_hint">Already have an account? Sign In</string>
+    <string name="switch_sign_up_hint">Don\'t have an account? Sign Up</string>
+    <!-- Strings related to main activity -->
+    <string name="label_main_activity">ChatRoom</string>
+</resources>
