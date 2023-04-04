@@ -12,7 +12,7 @@ import com.github.kittinunf.result.Result as ResultFuel
 class AuthDataSource {
 
     init {
-        FuelManager.instance.basePath = "http://chatroomfree.somee.com/api"
+        FuelManager.instance.basePath = "https://chatroomfree.somee.com/api"
     }
 
     /**
@@ -37,7 +37,7 @@ class AuthDataSource {
                 is ResultFuel.Success -> {
                     val body = JSONObject(result.value.toString(Charsets.UTF_8))
                     val user = LoggedInUser(
-                        body.get("user_id").toString(),
+                        body.get("user_id").toString().toInt(),
                         body.get("name").toString(),
                         body.get("token").toString())
                     Result.Success(user)
@@ -79,9 +79,7 @@ class AuthDataSource {
 
             return when (result) {
                 is ResultFuel.Success -> {
-                    val body = JSONObject(result.value.toString(Charsets.UTF_8))
-                    val message = body.get("message").toString()
-                    Result.Success(message)
+                    Result.Success("Registration successfully.")
                 }
 
                 is ResultFuel.Failure -> {
