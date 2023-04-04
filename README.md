@@ -1,9 +1,12 @@
 # ChatRoom
+
 ChatRoom is a real-time chat for people-to-people conversations. Groups of people can also be created to streamline communication from a team, a group of friends or any other group of people.
 
 ## Technologies
 
 Below is a list of all the technologies used to develop the app. They are structured by categories.
+
+### Web Application
 
 **Frontend**
    - HTML
@@ -25,9 +28,13 @@ Below is a list of all the technologies used to develop the app. They are struct
 **Cloud**
    - Cloudinary Storage
    
+### Mobile Application
+
+The mobile application is developed on the **Android** platform. The programming language used for the backend is **Kotin**.
+   
 ## Database
 
-The database used for data storage is Microsoft SQL Server.
+The database used for data storage is **Microsoft SQL Server**.
 
 ### Entity Relationship Diagram
 
