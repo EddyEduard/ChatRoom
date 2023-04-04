@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_more"
+        android:icon="@drawable/ic_more"
+        android:title="@string/toolbar_more"
+        app:showAsAction="ifRoom">
+
+        <menu>
+            <item
+                android:id="@+id/open_contact_list"
+                android:title="@string/toolbar_more_option_one" />
+
+            <item
+                android:id="@+id/open_user_list"
+                android:title="@string/toolbar_more_option_two" />
+
+            <item
+                android:id="@+id/open_my_profile"
+                android:title="@string/toolbar_more_option_three" />
+        </menu>
+    </item>
+</menu>

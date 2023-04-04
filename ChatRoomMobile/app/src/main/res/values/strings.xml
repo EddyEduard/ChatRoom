@@ -20,6 +20,31 @@
     <string name="registration_success">Registration successful. Sign In Now!</string>
     <string name="switch_sign_in_hint">Already have an account? Sign In</string>
     <string name="switch_sign_up_hint">Don\'t have an account? Sign Up</string>
+    <!-- Strings related to chat activity -->
+    <string name="warning_when_contact_no_exist">You are not in a relationship with this user. When you send your first message, it will automatically be added to your contacts.</string>
     <!-- Strings related to main activity -->
     <string name="label_main_activity">ChatRoom</string>
+    <string name="toolbar_search">Search</string>
+    <string name="toolbar_more">More</string>
+    <string name="toolbar_more_option_one">My Contacts</string>
+    <string name="toolbar_more_option_two">Add Contact</string>
+    <string name="toolbar_more_option_three">My Profile</string>
+    <string name="update_profile_failed">Error updating profile.</string>
+    <string name="info_group_account">Info: Below is a list of your groups created and managed by you. You can create a new group. You can also add or remove a member from your groups.</string>
+    <string name="info_member_group">Info: Below is a list of group members added and managed by you. You can add or remove a group member.</string>
+    <string name="create_group_failed">Error creating group.</string>
+    <string name="warning_delete_account">Warning: All of your data will be completely destroyed. This cannot be reversed.</string>
+    <string name="warning_delete_group">Warning: All of your data will be completely destroyed. This cannot be reversed.</string>
+    <string name="delete_account_failed">Failed to delete account.</string>
+    <string name="delete_group_failed">Failed to delete group.</string>
+    <string name="add_member_failed">Failed to add member.</string>
+    <string name="remove_member_failed">Failed to remove member.</string>
+    <string name="invalid_group_name">Name must be 3 characters.</string>
+    <string name="edit_account_button">SAVE CHANGES</string>
+    <string name="edit_group_button">SAVE CHANGES</string>
+    <string name="add_group_button">NEW GROUP</string>
+    <string name="add_member_button">ADD MEMBER</string>
+    <string name="cancel_add_member_button">CANCEL ADD MEMBER</string>
+    <string name="delete_account_button">DELETE ACCOUNT</string>
+    <string name="delete_group_button">DELETE GROUP</string>
 </resources>

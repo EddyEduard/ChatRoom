@@ -6,4 +6,5 @@
     <dimen name="auth_margin">20dp</dimen>
     <!-- Dimens related to sign up fragment -->
     <dimen name="signup_text_margin_top">10dp</dimen>
+    <dimen name="text_margin">16dp</dimen>
 </resources>

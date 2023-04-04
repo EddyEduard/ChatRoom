@@ -58,9 +58,16 @@
         <item name="android:layout_height">wrap_content</item>
     </style>
 
-    <style name="authButton" parent="viewParent">
-        <item name="android:background">@drawable/auth_button_background</item>
+    <style name="commonButton" parent="viewParent">
+        <item name="android:background">@drawable/common_button_background</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Contacts image rounded -->
+
+    <style name="roundedImageViewRounded">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
     </style>
 </resources>

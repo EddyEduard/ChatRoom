@@ -86,7 +86,7 @@
 
     <Button
         android:id="@+id/sign_up"
-        style="@style/authButton"
+        style="@style/commonButton"
         android:layout_gravity="right"
         android:layout_marginTop="@dimen/auth_margin"
         android:text="@string/sign_up_button"
