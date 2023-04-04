@@ -17,10 +17,13 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.personal.chatroommobile.MainActivity
 import com.personal.chatroommobile.R
+import com.personal.chatroommobile.data.CacheData
 import com.personal.chatroommobile.data.repositories.AuthRepository
 import com.personal.chatroommobile.data.source.AuthDataSource
 import com.personal.chatroommobile.databinding.ActivityAuthBinding
+import com.personal.chatroommobile.services.SocketHandler
 import kotlinx.coroutines.launch
+import java.util.*
 
 class AuthActivity : AppCompatActivity() {
 
@@ -133,10 +136,19 @@ class AuthActivity : AppCompatActivity() {
                     editRememberedCredentials.apply()
                 }
 
+                SocketHandler.setSocket("https://chatroomfree.somee.com/chat")
+                SocketHandler.establishConnection()
+
+                Timer().schedule(object : TimerTask() {
+                    override fun run() {
+                        SocketHandler.getSocket().invoke("ConnectUser", loginResult.success.id, "MOBILE")
+                    }
+                }, 1000)
+
                 val intent = Intent(this, MainActivity::class.java)
-                intent.putExtra("id", loginResult.success.id)
-                intent.putExtra("name", loginResult.success.name)
-                intent.putExtra("token", loginResult.success.token)
+                CacheData.userId = loginResult.success.id
+                CacheData.name = loginResult.success.name
+                CacheData.token = loginResult.success.token
                 startActivity(intent)
             }
 
@@ -264,6 +276,15 @@ class AuthActivity : AppCompatActivity() {
         })
 
         signUpUsername.afterTextChanged {
+            authViewModel.registerDataChanged(
+                signUpUsername.text.toString(),
+                signUpEmail.text.toString(),
+                signUpPassword.text.toString(),
+                signUpConfirmPassword.text.toString()
+            )
+        }
+
+        signUpEmail.afterTextChanged {
             authViewModel.registerDataChanged(
                 signUpUsername.text.toString(),
                 signUpEmail.text.toString(),

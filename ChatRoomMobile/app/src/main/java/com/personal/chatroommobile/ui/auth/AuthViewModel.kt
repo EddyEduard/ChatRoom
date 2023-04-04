@@ -135,7 +135,7 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
      * @return true if username is valid or false otherwise
      * */
     private fun isUserNameValid(username: String): Boolean {
-        return username.length >= 6
+        return username.replace(" ", "").length >= 6
     }
 
     /**
