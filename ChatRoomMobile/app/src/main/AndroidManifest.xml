@@ -4,6 +4,7 @@
     package="com.personal.chatroommobile">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -15,6 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ChatRoomMobile"
         android:usesCleartextTraffic="true"
+        android:requestLegacyExternalStorage="true"
         tools:targetApi="31">
         <!-- Auth activity -->
         <activity
@@ -31,6 +33,13 @@
         <!-- Main activity -->
         <activity
             android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/label_main_activity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.ChatRoomMobile.NoActionBar" />
+        <!-- Chat activity -->
+        <activity
+            android:name=".ui.chat.ChatActivity"
             android:exported="true"
             android:label="@string/label_main_activity"
             android:screenOrientation="portrait"
