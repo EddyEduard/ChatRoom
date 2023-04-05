@@ -4,9 +4,13 @@ namespace ChatRoom.Services.Hubs
 {
     public class ChatHub : Hub
     {
-        private static Dictionary<int, string> _onlineUsers = new Dictionary<int, string>();
+        private static Dictionary<int, string> _onlineUsersOnBrowser = new Dictionary<int, string>();
 
-		private static Dictionary<int, List<string>> _onlineGroups = new Dictionary<int, List<string>>();
+		private static Dictionary<int, string> _onlineUsersOnMobile = new Dictionary<int, string>();
+
+		private static Dictionary<int, List<string>> _onlineGroupsOnBrowser = new Dictionary<int, List<string>>();
+
+		private static Dictionary<int, List<string>> _onlineGroupsOnMobile = new Dictionary<int, List<string>>();
 
 		// Connecting to socket.
 		public override Task OnConnectedAsync()
@@ -14,59 +18,103 @@ namespace ChatRoom.Services.Hubs
 			return Task.CompletedTask;
         }
 
-        // Disconnecting from socket.
+		// Disconnecting from socket.
 		public override async Task OnDisconnectedAsync(Exception? exception)
-        {
-            _onlineUsers.Remove(_onlineUsers.First(x => x.Value == Context.ConnectionId).Key);
-
-			var onlineGroupConnectionIDs = _onlineGroups.FirstOrDefault(x => x.Value.Contains(Context.ConnectionId));
+		{
+			bool existConnectionUserOnBrowser = false;
+			var userConnectionOnBrowser = _onlineUsersOnBrowser.FirstOrDefault(x => x.Value == Context.ConnectionId && (existConnectionUserOnBrowser = true));
 			
-			if(_onlineGroups.Any(x => x.Value.Contains(Context.ConnectionId)))
-				onlineGroupConnectionIDs.Value.Remove(Context.ConnectionId);
+			if (existConnectionUserOnBrowser)
+				_onlineUsersOnBrowser.Remove(userConnectionOnBrowser.Key);
 
-			await Clients.All.SendAsync("OnlineUsers", _onlineUsers.Keys);
-			await Clients.All.SendAsync("OnlineGroups", _onlineGroups.Keys);
+			bool existConnectionUserOnMobile = false;
+			var userConnectionOnMobile = _onlineUsersOnMobile.FirstOrDefault(x => x.Value == Context.ConnectionId && (existConnectionUserOnMobile = true));
+			
+			if (existConnectionUserOnMobile)
+				_onlineUsersOnMobile.Remove(userConnectionOnMobile.Key);
+
+			var onlineGroupOnBrowserConnectionIDs = _onlineGroupsOnBrowser.FirstOrDefault(x => x.Value.Contains(Context.ConnectionId));
+
+			if (_onlineGroupsOnBrowser.Any(x => x.Value.Contains(Context.ConnectionId)))
+				onlineGroupOnBrowserConnectionIDs.Value.Remove(Context.ConnectionId);
+
+			var onlineGroupOnMobileConnectionIDs = _onlineGroupsOnMobile.FirstOrDefault(x => x.Value.Contains(Context.ConnectionId));
+
+			if (_onlineGroupsOnMobile.Any(x => x.Value.Contains(Context.ConnectionId)))
+				onlineGroupOnMobileConnectionIDs.Value.Remove(Context.ConnectionId);
+
+			await Clients.All.SendAsync("OnlineUsers", _onlineUsersOnBrowser.Keys.Union(_onlineUsersOnMobile.Keys));
+			await Clients.All.SendAsync("OnlineGroups", _onlineGroupsOnBrowser.Keys.Union(_onlineGroupsOnMobile.Keys));
 		}
 
 		// Connect user to chat.
-		public async Task ConnectUser(int userId)
+		public async Task ConnectUser(int userId, string device)
 		{
-			if (!_onlineUsers.ContainsKey(userId))
-				_onlineUsers.Add(userId, Context.ConnectionId);
-			else
+			if (device == "BROWSER")
 			{
-				_onlineUsers.Remove(userId);
-				_onlineUsers.Add(userId, Context.ConnectionId);
+				if (!_onlineUsersOnBrowser.ContainsKey(userId))
+					_onlineUsersOnBrowser.Add(userId, Context.ConnectionId);
+				else
+				{
+					_onlineUsersOnBrowser.Remove(userId);
+					_onlineUsersOnBrowser.Add(userId, Context.ConnectionId);
+				}
+			} else if(device == "MOBILE")
+			{
+				if (!_onlineUsersOnMobile.ContainsKey(userId))
+					_onlineUsersOnMobile.Add(userId, Context.ConnectionId);
+				else
+				{
+					_onlineUsersOnMobile.Remove(userId);
+					_onlineUsersOnMobile.Add(userId, Context.ConnectionId);
+				}
 			}
 
-			await Clients.All.SendAsync("OnlineUsers", _onlineUsers.Keys);
+			await Clients.All.SendAsync("OnlineUsers", _onlineUsersOnBrowser.Keys.Union(_onlineUsersOnMobile.Keys));
 		}
 
 		// Connect group to chat.
-		public async Task ConnectGroup(int groupId)
+		public async Task ConnectGroup(int groupId, string device)
 		{
-			if (!_onlineGroups.ContainsKey(groupId))
-				_onlineGroups.Add(groupId, new List<string> { Context.ConnectionId });
-			else
-				_onlineGroups[groupId].Add(Context.ConnectionId);
+			if (device == "BROWSER")
+			{
+				if (!_onlineGroupsOnBrowser.ContainsKey(groupId))
+					_onlineGroupsOnBrowser.Add(groupId, new List<string> { Context.ConnectionId });
+				else
+					_onlineGroupsOnBrowser[groupId].Add(Context.ConnectionId);
+			}
+			else if (device == "MOBILE")
+			{
+				if (!_onlineGroupsOnMobile.ContainsKey(groupId))
+					_onlineGroupsOnMobile.Add(groupId, new List<string> { Context.ConnectionId });
+				else
+					_onlineGroupsOnMobile[groupId].Add(Context.ConnectionId);
+			}
 
-			await Clients.All.SendAsync("OnlineGroups", _onlineGroups.Keys);
+			await Clients.All.SendAsync("OnlineGroups", _onlineGroupsOnBrowser.Keys.Union(_onlineGroupsOnMobile.Keys));
 		}
 
 		// Provide connected users and groups.
 		public async Task ProvideConnectedUsersAndGroups()
 		{
-			await Clients.All.SendAsync("OnlineUsers", _onlineUsers.Keys);
-			await Clients.All.SendAsync("OnlineGroups", _onlineGroups.Keys);
+			await Clients.All.SendAsync("OnlineUsers", _onlineUsersOnBrowser.Keys.Union(_onlineUsersOnMobile.Keys));
+			await Clients.All.SendAsync("OnlineGroups", _onlineGroupsOnBrowser.Keys.Union(_onlineGroupsOnMobile.Keys));
 		}
 
 		// Send message to a user.
 		public async Task SendMessageToUser(int fromUserId, int toUserId, string message, string dateTime)
         {
-			if (_onlineUsers.ContainsKey(toUserId))
+			if (_onlineUsersOnBrowser.ContainsKey(toUserId))
 			{
-                var connectionId = _onlineUsers[toUserId];
+                var connectionId = _onlineUsersOnBrowser[toUserId];
 				
+				await Clients.Client(connectionId).SendAsync("ReceiveMessageFromUser", fromUserId, message, dateTime);
+			}
+
+			if (_onlineUsersOnMobile.ContainsKey(toUserId))
+			{
+				var connectionId = _onlineUsersOnMobile[toUserId];
+
 				await Clients.Client(connectionId).SendAsync("ReceiveMessageFromUser", fromUserId, message, dateTime);
 			}
 		}
@@ -74,9 +122,9 @@ namespace ChatRoom.Services.Hubs
 		// Send message to a group.
 		public async Task SendMessageToGroup(int userId, int groupId, string message, string dateTime, string name, string image)
 		{
-			if (_onlineGroups.ContainsKey(groupId))
+			if (_onlineGroupsOnBrowser.ContainsKey(groupId))
 			{
-				var connectionIds = _onlineGroups[groupId];
+				var connectionIds = _onlineGroupsOnBrowser[groupId];
 				var previewCoonectionId = "";
 
 				foreach (var connectionId in connectionIds)
@@ -89,14 +137,37 @@ namespace ChatRoom.Services.Hubs
 					}
 				}
 			}
+			
+			if (_onlineGroupsOnMobile.ContainsKey(groupId))
+			{
+				var connectionIds = _onlineGroupsOnMobile[groupId];
+				var previewCoonectionId = "";
+
+				foreach (var connectionId in connectionIds)
+				{
+					if (connectionId != previewCoonectionId)
+					{
+						await Clients.Client(connectionId).SendAsync("ReceiveMessageFromGroup", userId, groupId, message, dateTime, name, image);
+
+						previewCoonectionId = connectionId;
+					}
+				}
+			}
 		}
 
 		// Seen messages from user.
 		public async Task SeenMessagesFromUser(int fromUserId, int toUserId)
 		{
-			if (_onlineUsers.ContainsKey(toUserId))
+			if (_onlineUsersOnBrowser.ContainsKey(toUserId))
 			{
-				var connectionId = _onlineUsers[toUserId];
+				var connectionId = _onlineUsersOnBrowser[toUserId];
+
+				await Clients.Client(connectionId).SendAsync("ReceiveSeenMessagesFromUser", fromUserId);
+			}
+
+			if (_onlineUsersOnMobile.ContainsKey(toUserId))
+			{
+				var connectionId = _onlineUsersOnMobile[toUserId];
 
 				await Clients.Client(connectionId).SendAsync("ReceiveSeenMessagesFromUser", fromUserId);
 			}
