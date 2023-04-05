@@ -293,7 +293,7 @@ angular.module("ChatRoom", [])
                 });
 
                 setTimeout(() => {
-                    connection.invoke("ConnectUser", $scope.profile.user.id);
+                    connection.invoke("ConnectUser", $scope.profile.user.id, "BROWSER");
                 }, 1000);
 
                 connection.on("OnlineGroups", function (groups) {
@@ -304,7 +304,7 @@ angular.module("ChatRoom", [])
 
                 setTimeout(() => {
                     for (const group of $scope.groups)
-                        connection.invoke("ConnectGroup", group.id);
+                        connection.invoke("ConnectGroup", group.id, "BROWSER");
                 }, 1000);
 
                 setTimeout(() => {
@@ -432,7 +432,7 @@ angular.module("ChatRoom", [])
             // Add member to group.
 
             $.ajax({
-                type: "PATCH",
+                type: "POST",
                 url: `${window.location.origin}/api/relationship/group/${$scope.$root.manageGroup.id}`,
                 headers: {
                     "Authorization": "Bearer " + token
