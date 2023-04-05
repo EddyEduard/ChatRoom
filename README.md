@@ -31,6 +31,8 @@ Below is a list of all the technologies used to develop the app. They are struct
 ### Mobile Application
 
 The mobile application is developed on the **Android** platform. The programming language used for the backend is **Kotin**.
+
+The APK file for installing the mobile app can be downloaded from this [link](https://www.dropbox.com/s/q8ctvxpfzlg7ebo/app-debug.apk?dl=0).
    
 ## Database
 
