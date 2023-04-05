@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using ChatRoom.Services.Hubs;
+using Microsoft.AspNetCore.Http.Connections;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,6 +65,9 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.MapHub<ChatHub>("/chat");
+app.MapHub<ChatHub>("/chat", options =>
+{
+	options.Transports = HttpTransportType.WebSockets | HttpTransportType.LongPolling;
+});
 
 app.Run();
