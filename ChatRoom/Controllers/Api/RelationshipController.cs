@@ -289,9 +289,9 @@ namespace ChatRoom.Controllers.Api
 			}
 		}
 
-		// PATCH: api/relationship/group/{groupId}
+		// POST: api/relationship/group/{groupId}
 		// Add a new member into a group.
-		[HttpPatch("group/{groupId:int}")]
+		[HttpPost("group/{groupId:int}")]
 		public async Task<ActionResult<UserModel>> AddMemeberToGroup([FromRoute] int groupId, [FromBody] JsonElement body)
 		{
 			try

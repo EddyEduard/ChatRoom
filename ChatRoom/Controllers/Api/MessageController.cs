@@ -1,5 +1,6 @@
 ﻿using ChatRoom.Data;
 using ChatRoom.Models.DB;
+using CloudinaryDotNet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,11 +14,19 @@ namespace ChatRoom.Controllers.Api
 	[ApiController]
 	public class MessageController : ControllerBase
 	{
+		private IConfiguration Configuration;
+
 		private readonly ApplicationDbContext _context;
 
-		public MessageController(ApplicationDbContext context)
+		private readonly Cloudinary _cloudinary;
+
+		public MessageController(IConfiguration configuration, ApplicationDbContext context)
 		{
+			Configuration = configuration;
+
 			_context = context;
+
+			_cloudinary = new Cloudinary(new Account(Configuration.GetSection("Cloudinary").GetValue<string>("Cloud")!, Configuration.GetSection("Cloudinary").GetValue<string>("ApiKey")!, Configuration.GetSection("Cloudinary").GetValue<string>("ApiSecret")!));
 		}
 
 		// GET: api/message/{secondUserId}
@@ -66,8 +75,15 @@ namespace ChatRoom.Controllers.Api
 				IEnumerable<MessageGroupModel> messages = _context.MessageGroups!.Where(x => x.IdGroup == groupId);
 
 				foreach (var message in messages)
+				{
 					message.User = await _context.Users!.FirstOrDefaultAsync(x => x.Id == message.IdUser);
-				
+
+					var resource = await _cloudinary.GetResourceAsync("chatroom/users/" + message.User!.Id.ToString());
+
+					if (resource.SecureUrl != null)
+						message.User.Image = resource.SecureUrl;
+				}
+
 				return Ok(messages);
 			}
 			catch (DbUpdateConcurrencyException ex)
